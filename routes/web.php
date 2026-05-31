@@ -2,15 +2,25 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
 
-Route::get('/', [DashboardController::class, 'index']);
-Route::get('/dashboard', [DashboardController::class, 'index']);
-
-Route::get('/jobs', function () {
-    return view('jobs');
+// Dashboard page (homepage)
+Route::get('/', function () {
+    return view('dashboard');
 });
 
+Route::get('/dashboard', function () {
+    return view('dashboard');
+});
+
+// Your sidebar pages
 Route::get('/billing', function () {
     return view('billing');
+});
+
+Route::get('/reports', function () {
+    return view('reports');
+});
+
+Route::get('/settings', function () {
+    return view('settings');
 });
