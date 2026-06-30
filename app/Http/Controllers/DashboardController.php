@@ -4,18 +4,35 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // -- CHART 1 -- Resource Utilisation (CPU vs GPU Hours)
+        $driver = DB::getDriverName();
+        $isSqlite = $driver === 'sqlite';
+
+        // Formatting strings based on DB driver
+        $jobsMonthExpr = $isSqlite 
+            ? "strftime('%Y-%m', created_at, 'unixepoch')" 
+            : "DATE_FORMAT(FROM_UNIXTIME(created_at), '%Y-%m')";
+        
+        $jobsDayExpr = $isSqlite 
+            ? "strftime('%Y-%m-%d', created_at, 'unixepoch')" 
+            : "DATE_FORMAT(FROM_UNIXTIME(created_at), '%Y-%m-%d')";
+
+        $paymentsMonthExpr = $isSqlite 
+            ? "strftime('%Y-%m', created_at)" 
+            : "DATE_FORMAT(created_at, '%Y-%m')";
+
+        // -- CHART 1 -- Resource Utilisation (CPU vs GPU Hours) by Month
         $utilisationData = DB::table('jobs')
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month,
+            ->selectRaw("$jobsMonthExpr as month,
                          SUM(CASE WHEN resource_type = 'CPU' THEN cpu_hours ELSE 0 END) as cpu_hours,
                          SUM(CASE WHEN resource_type = 'GPU' THEN cpu_hours ELSE 0 END) as gpu_hours")
-            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
-            ->orderByRaw("DATE_FORMAT(created_at, '%Y-%m')")
+            ->groupByRaw("month")
+            ->orderByRaw("month")
             ->get();
 
         $utilisationLabels = $utilisationData->pluck('month');
@@ -24,10 +41,10 @@ class DashboardController extends Controller
 
         // -- CHART 2 -- Monthly Revenue
         $financialData = DB::table('payments')
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month,
+            ->selectRaw("$paymentsMonthExpr as month,
                          SUM(amount) as revenue")
-            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
-            ->orderByRaw("DATE_FORMAT(created_at, '%Y-%m')")
+            ->groupByRaw("month")
+            ->orderByRaw("month")
             ->get();
 
         $financialLabels = $financialData->pluck('month');
@@ -42,9 +59,29 @@ class DashboardController extends Controller
         $statusLabels = $jobStatusData->pluck('status');
         $statusCounts = $jobStatusData->pluck('count');
 
-        // -- CHART 4 -- Temporarily disabled until we know the column name
-        $topUsersLabels = collect([]);
-        $topUsersSeries = collect([]);
+        // -- DAILY TRENDS (Last 7 Days) --
+        $dailyData = DB::table('jobs')
+            ->selectRaw("$jobsDayExpr as day,
+                         AVG(cpu_hours) as avg_cpu,
+                         AVG(memory_usage) as avg_memory,
+                         COUNT(*) as job_count")
+            ->where('created_at', '>=', Carbon::now()->subDays(7)->timestamp)
+            ->groupByRaw("day")
+            ->orderBy('day')
+            ->get();
+
+        $dailyLabels = $dailyData->pluck('day')->map(function($date) {
+            return Carbon::parse($date)->format('D');
+        });
+        $dailyCpu = $dailyData->pluck('avg_cpu');
+        $dailyMemory = $dailyData->pluck('avg_memory');
+        $dailyJobs = $dailyData->pluck('job_count');
+
+        // KPI Totals
+        $totalCpuHours = DB::table('jobs')->sum('cpu_hours');
+        $avgMemory = DB::table('jobs')->avg('memory_usage') ?? 0;
+        $activeJobs = DB::table('jobs')->where('status', 'running')->count();
+        $totalRevenue = DB::table('payments')->sum('amount');
 
         return view('dashboard', compact(
             'utilisationLabels',
@@ -54,8 +91,14 @@ class DashboardController extends Controller
             'revenueSeries',
             'statusLabels',
             'statusCounts',
-            'topUsersLabels',
-            'topUsersSeries'
+            'dailyLabels',
+            'dailyCpu',
+            'dailyMemory',
+            'dailyJobs',
+            'totalCpuHours',
+            'avgMemory',
+            'activeJobs',
+            'totalRevenue'
         ));
     }
 }

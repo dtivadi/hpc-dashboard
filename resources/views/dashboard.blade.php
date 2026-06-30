@@ -7,43 +7,38 @@
 <div style="display:flex; gap:20px; margin-top:20px;">
     <div style="background:#1e293b; color:#fff; padding:20px; border-radius:8px; width:200px;">
         <p>Total CPU Hours</p>
-        <h2>12,450</h2>
+        <h2>{{ number_format($totalCpuHours) }}</h2>
     </div>
     <div style="background:#1e293b; color:#fff; padding:20px; border-radius:8px; width:200px;">
-        <p>Memory Usage</p>
-        <h2>78%</h2>
+        <p>Avg Memory Usage</p>
+        <h2>{{ number_format($avgMemory, 1) }}%</h2>
     </div>
     <div style="background:#1e293b; color:#fff; padding:20px; border-radius:8px; width:200px;">
         <p>Active Jobs</p>
-        <h2>24</h2>
+        <h2>{{ $activeJobs }}</h2>
     </div>
     <div style="background:#1e293b; color:#fff; padding:20px; border-radius:8px; width:200px;">
-        <p>Total Cost</p>
-        <h2>$4,280</h2>
-    </div>
-    <div style="background:#1e293b; color:#fff; padding:20px; border-radius:8px; width:200px;">
-        <p>GPU Utilisation</p>
-        <h2>67%</h2>
-        <p style+"font-size:12px; opacity:0.7; margin-top:4px;">Avg this week</p>
+        <p>Total Revenue</p>
+        <h2>${{ number_format($totalRevenue, 2) }}</h2>
     </div>
 </div>
 
 {{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-{{-- Row 1: CPU + Memory --}}
+{{-- Row 1: CPU + Memory (Daily Trends) --}}
 <div style="display:flex; gap:16px; margin-top:24px; margin-right:24px;">
     <div style="background:#fff; border-radius:10px; padding:16px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.08); flex:1; max-width: 45%;;">
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); flex:1; max-width: 45%;">
         <h3 style="margin:0 0 16px 0; font-size:15px; color:#1e293b;">
-            CPU Usage Trend
+            CPU Usage Trend (Last 7 Days)
         </h3>
         <canvas id="cpuChart"></canvas>
     </div>
     <div style="background:#fff; border-radius:10px; padding:16px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.08); flex:1; max-width: 45%;;">
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); flex:1; max-width: 45%;">
         <h3 style="margin:0 0 16px 0; font-size:15px; color:#1e293b;">
-            Memory Usage Trend
+            Memory Usage Trend (Last 7 Days)
         </h3>
         <canvas id="memoryChart"></canvas>
     </div>
@@ -54,7 +49,7 @@
     <div style="background:#fff; border-radius:10px; padding:20px;
                 box-shadow:0 2px 8px rgba(0,0,0,0.08); flex:1;">
         <h3 style="margin:0 0 16px 0; font-size:15px; color:#1e293b;">
-            Active Jobs This Week
+            Active Jobs Trend (Last 7 Days)
         </h3>
         <canvas id="jobsChart"></canvas>
     </div>
@@ -67,15 +62,24 @@
     </div>
 </div>
 
-{{-- All chart scripts --}}
 <script>
+// Daily Trends
+const dailyLabels = {!! json_encode($dailyLabels) !!};
+const dailyCpu = {!! json_encode($dailyCpu) !!};
+const dailyMemory = {!! json_encode($dailyMemory) !!};
+const dailyJobs = {!! json_encode($dailyJobs) !!};
+
+// Monthly Financials
+const financialLabels = {!! json_encode($financialLabels) !!};
+const revenueSeries = {!! json_encode($revenueSeries) !!};
+
 new Chart(document.getElementById('cpuChart'), {
     type: 'line',
     data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: dailyLabels,
         datasets: [{
-            label: 'CPU Usage (%)',
-            data: [65, 72, 68, 85, 79, 60, 75],
+            label: 'Avg CPU Hours',
+            data: dailyCpu,
             borderColor: '#2E74B5',
             backgroundColor: 'rgba(46,116,181,0.1)',
             tension: 0.4,
@@ -84,17 +88,17 @@ new Chart(document.getElementById('cpuChart'), {
     },
     options: {
         responsive: true,
-        scales: { y: { beginAtZero: true, max: 100 } }
+        scales: { y: { beginAtZero: true } }
     }
 });
 
 new Chart(document.getElementById('memoryChart'), {
     type: 'line',
     data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: dailyLabels,
         datasets: [{
-            label: 'Memory Usage (%)',
-            data: [70, 75, 80, 78, 82, 74, 77],
+            label: 'Avg Memory Usage (%)',
+            data: dailyMemory,
             borderColor: '#E74C3C',
             backgroundColor: 'rgba(231,76,60,0.1)',
             tension: 0.4,
@@ -110,10 +114,10 @@ new Chart(document.getElementById('memoryChart'), {
 new Chart(document.getElementById('jobsChart'), {
     type: 'bar',
     data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: dailyLabels,
         datasets: [{
-            label: 'Active Jobs',
-            data: [18, 24, 30, 22, 28, 15, 10],
+            label: 'Job Count',
+            data: dailyJobs,
             backgroundColor: 'rgba(46,116,181,0.8)',
             borderColor: '#1F3864',
             borderWidth: 1,
@@ -132,10 +136,10 @@ new Chart(document.getElementById('jobsChart'), {
 new Chart(document.getElementById('revenueChart'), {
     type: 'bar',
     data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        labels: financialLabels,
         datasets: [{
             label: 'Revenue ($)',
-            data: [4200, 3800, 5100, 4700, 5600, 4280],
+            data: revenueSeries,
             backgroundColor: 'rgba(39,174,96,0.8)',
             borderColor: '#1e9e6b',
             borderWidth: 1,
@@ -151,6 +155,7 @@ new Chart(document.getElementById('revenueChart'), {
     }
 });
 </script>
+
 {{-- Row 3: Job Status Doughnut --}}
 <div style="display:flex; gap:16px; margin-top:24px; margin-left:24px; margin-right:24px;">
     <div style="background:#fff; border-radius:10px; padding:16px;
@@ -163,17 +168,21 @@ new Chart(document.getElementById('revenueChart'), {
 </div>
 
 <script>
+const statusLabels = {!! json_encode($statusLabels) !!};
+const statusCounts = {!! json_encode($statusCounts) !!};
+
 new Chart(document.getElementById('jobStatusChart'), {
     type: 'doughnut',
     data: {
-        labels: ['Completed', 'Running', 'Queued', 'Failed'],
+        labels: statusLabels,
         datasets: [{
-            data: [65, 24, 8, 3],
+            data: statusCounts,
             backgroundColor: [
                 'rgba(39,174,96,0.8)',
                 'rgba(46,116,181,0.8)',
                 'rgba(243,156,18,0.8)',
-                'rgba(231,76,60,0.8)'
+                'rgba(231,76,60,0.8)',
+                'rgba(142,68,173,0.8)'
             ],
             borderWidth: 2
         }]
@@ -186,61 +195,37 @@ new Chart(document.getElementById('jobStatusChart'), {
     }
 });
 </script>
-{{-- Row 4: GPU Usage --}}
+
+{{-- Row 4: CPU vs GPU Usage (Monthly) --}}
 <div style="display:flex; gap:16px; margin-top:24px; margin-left:24px; margin-right:24px; margin-bottom:32px;">
     <div style="background:#fff; border-radius:10px; padding:16px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.08); flex:1; max-width:45%;">
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); flex:1; max-width:70%;">
         <h3 style="margin:0 0 16px 0; font-size:15px; color:#1e293b;">
-            GPU Utilisation Trend
-        </h3>
-        <canvas id="gpuChart"></canvas>
-    </div>
-    <div style="background:#fff; border-radius:10px; padding:16px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.08); max-width:350px;">
-        <h3 style="margin:0 0 16px 0; font-size:15px; color:#1e293b;">
-            CPU vs GPU Usage
+            Monthly Resource Utilization (CPU vs GPU Hours)
         </h3>
         <canvas id="cpuVsGpuChart"></canvas>
     </div>
 </div>
 
 <script>
-new Chart(document.getElementById('gpuChart'), {
-    type: 'line',
-    data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-            label: 'GPU Utilisation (%)',
-            data: [45, 60, 75, 90, 85, 50, 65],
-            borderColor: '#8E44AD',
-            backgroundColor: 'rgba(142,68,173,0.1)',
-            tension: 0.4,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true, max: 100,
-                 title: { display: true, text: 'Utilisation (%)' }}
-        }
-    }
-});
+const utilisationLabels = {!! json_encode($utilisationLabels) !!};
+const cpuHoursSeries = {!! json_encode($cpuHoursSeries) !!};
+const gpuHoursSeries = {!! json_encode($gpuHoursSeries) !!};
 
 new Chart(document.getElementById('cpuVsGpuChart'), {
     type: 'bar',
     data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: utilisationLabels,
         datasets: [
             {
-                label: 'CPU (%)',
-                data: [65, 72, 68, 85, 79, 60, 75],
+                label: 'CPU Hours',
+                data: cpuHoursSeries,
                 backgroundColor: 'rgba(46,116,181,0.8)',
                 borderRadius: 4
             },
             {
-                label: 'GPU (%)',
-                data: [45, 60, 75, 90, 85, 50, 65],
+                label: 'GPU Hours',
+                data: gpuHoursSeries,
                 backgroundColor: 'rgba(142,68,173,0.8)',
                 borderRadius: 4
             }
@@ -250,51 +235,11 @@ new Chart(document.getElementById('cpuVsGpuChart'), {
         responsive: true,
         plugins: { legend: { position: 'top' }},
         scales: {
-            y: { beginAtZero: true, max: 100,
-                 title: { display: true, text: 'Usage (%)' }}
-        }
-    }
-});
-</script>
-{{-- Cost vs Revenue --}}
-<div style="display:flex; gap:16px; margin-top:24px; margin-left:24px; margin-right:24px;">
-    <div style="background:#fff; border-radius:10px; padding:16px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.08); max-width:500px;">
-        <h3 style="margin:0 0 16px 0; font-size:15px; color:#1e293b;">
-            Cost vs Revenue (Monthly)
-        </h3>
-        <canvas id="costRevenueChart"></canvas>
-    </div>
-</div>
-
-<script>
-new Chart(document.getElementById('costRevenueChart'), {
-    type: 'bar',
-    data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [
-            {
-                label: 'Revenue ($)',
-                data: [4200, 3800, 5100, 4700, 5600, 4280],
-                backgroundColor: 'rgba(39,174,96,0.8)',
-                borderRadius: 4
-            },
-            {
-                label: 'Cost ($)',
-                data: [3100, 3200, 3400, 3300, 3600, 3200],
-                backgroundColor: 'rgba(231,76,60,0.8)',
-                borderRadius: 4
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { position: 'top' }},
-        scales: {
             y: { beginAtZero: true,
-                 title: { display: true, text: 'Amount ($)' }}
+                 title: { display: true, text: 'Hours' }}
         }
     }
 });
 </script>
+
 @endsection

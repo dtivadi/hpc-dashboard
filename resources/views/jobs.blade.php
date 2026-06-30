@@ -1,47 +1,38 @@
 @extends('layouts.app')
+
 @section('content')
 <h1>HPC Jobs</h1>
+
 <table style="width:100%; border-collapse:collapse; margin-top:20px;">
-<tr style="background:#1e293b; color:white;">
-<th style="padding:10px; border:1px solid #ccc;">Job ID</th>
-<th style="padding:10px; border:1px solid #ccc;">Submitted By</th>
-<th style="padding:10px; border:1px solid #ccc;">Job Name</th>
-<th style="padding:10px; border:1px solid #ccc;">Status</th>
-<th style="padding:10px; border:1px solid #ccc;">CPU Hours</th>
-<th style="padding:10px; border:1px solid #ccc;">Cost</th>
-</tr>
-<tr>
-<td style="padding:10px; border:1px solid #ccc;">JOB-001</td>
-<td style="padding:10px; border:1px solid #ccc;">John Moyo</td>
-<td style="padding:10px; border:1px solid #ccc;">Climate Simulation</td>
-<td style="padding:10px; border:1px solid #ccc; color:green;">Running</td>
-<td style="padding:10px; border:1px solid #ccc;">120</td>
-<td style="padding:10px; border:1px solid #ccc;">$60</td>
-</tr>
-<tr>
-<td style="padding:10px; border:1px solid #ccc;">JOB-002</td>
-<td style="padding:10px; border:1px solid #ccc;">Mazvita</td>
-<td style="padding:10px; border:1px solid #ccc;">Data Analysis</td>
-<td style="padding:10px; border:1px solid #ccc; color:green;">Running</td>
-<td style="padding:10px; border:1px solid #ccc;">90</td>
-<td style="padding:10px; border:1px solid #ccc;">$35</td>
-</tr>
-<tr>
-<td style="padding:10px; border:1px solid #ccc;">JOB-003</td>
-<td style="padding:10px; border:1px solid #ccc;">Tadi Mutepfa</td>
-<td style="padding:10px; border:1px solid #ccc;">Protein Folding</td>
-<td style="padding:10px; border:1px solid #ccc; color:red;">Failed</td>
-<td style="padding:10px; border:1px solid #ccc;">45</td>
-<td style="padding:10px; border:1px solid #ccc;">$20</td>
-</tr>
-<tr>
-<td style="padding:10px; border:1px solid #ccc;">JOB-004</td>
-<td style="padding:10px; border:1px solid #ccc;">Mike Dube</td>
-<td style="padding:10px; border:1px solid #ccc;">Molecular Dynamics</td>
-<td style="padding:10px; border:1px solid #ccc; color:orange;">Queued</td>
-<td style="padding:10px; border:1px solid #ccc;">0</td>
-<td style="padding:10px; border:1px solid #ccc;">$0</td>
-</tr>
+    <thead>
+        <tr style="background:#1e293b; color:white;">
+            <th style="padding:10px; border:1px solid #ccc;">ID</th>
+            <th style="padding:10px; border:1px solid #ccc;">Type</th>
+            <th style="padding:10px; border:1px solid #ccc;">CPU Hours</th>
+            <th style="padding:10px; border:1px solid #ccc;">Memory Usage</th>
+            <th style="padding:10px; border:1px solid #ccc;">Status</th>
+            <th style="padding:10px; border:1px solid #ccc;">Submitted</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($jobs as $job)
+            <tr>
+                <td style="padding:10px; border:1px solid #ccc;">#{{ $job->id }}</td>
+                <td style="padding:10px; border:1px solid #ccc;">{{ $job->resource_type ?? 'N/A' }}</td>
+                <td style="padding:10px; border:1px solid #ccc;">{{ $job->cpu_hours ?? 0 }}</td>
+                <td style="padding:10px; border:1px solid #ccc;">{{ $job->memory_usage ?? 0 }}%</td>
+                <td style="padding:10px; border:1px solid #ccc;">
+                    <span style="padding: 2px 8px; border-radius: 12px; background: {{ $job->status == 'completed' ? '#dcfce7' : ($job->status == 'failed' ? '#fee2e2' : '#fef9c3') }}; color: {{ $job->status == 'completed' ? '#166534' : ($job->status == 'failed' ? '#991b1b' : '#ca8a04') }};">
+                        {{ ucfirst($job->status ?? 'unknown') }}
+                    </span>
+                </td>
+                <td style="padding:10px; border:1px solid #ccc;">{{ date('Y-m-d H:i', $job->created_at) }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="6" style="padding:20px; text-align:center; border:1px solid #ccc;">No jobs found.</td>
+            </tr>
+        @endforelse
+    </tbody>
 </table>
 @endsection
-

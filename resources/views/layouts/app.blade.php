@@ -25,15 +25,23 @@ text-decoration:none;}
 </head>
 <body>
 	
-    <div class="sidebar">
-<div class="logo" style="color:white"> HPC  Dashboard </div>
-<ul class="nav-links">
-<li><a href="{{ url('resources')}}>Resource Usage</a></li>
-<li><a href="{{ url ('/jobs')}}> Jobs</a></li>
-<li><a href="{{ url('/users') }}">Users</a></li>
-<li><a href="{{ url('/billing') }}">Billing</a></li>
-<li><a href="{{ url('/reports') }}">Reports</a></li>
-<li><a href="{{ url('/settings') }}">Settings</a></li>
+<div class="sidebar">
+<div class="logo" style="color:white; padding: 20px; font-weight: bold; border-bottom: 1px solid #334155;"> HPC Dashboard </div>
+<ul class="nav-links" style="list-style: none; padding: 0;">
+<li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+<li><a href="{{ route('resources.index') }}">Resources</a></li>
+<li><a href="{{ route('services.index') }}">Services</a></li>
+<li><a href="{{ route('jobs') }}">Jobs</a></li>
+<li><a href="{{ route('users.index') }}">Users</a></li>
+<li><a href="{{ route('billing') }}">Billing</a></li>
+<li><a href="{{ route('reports') }}">Reports</a></li>
+<li><a href="{{ route('settings') }}">Settings</a></li>
+<li style="margin-top: 20px; border-top: 1px solid #334155;">
+    <form action="{{ route('logout') }}" method="POST" style="padding: 12px 25px;">
+        @csrf
+        <button type="submit" style="background: none; border: none; color: #f87171; cursor: pointer; padding: 0; font-size: 16px; width: 100%; text-align: left;">Logout</button>
+    </form>
+</li>
 </ul>
 </div>
 <div class="main-content">

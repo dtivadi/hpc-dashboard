@@ -1,0 +1,28 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hpc-dashboard-app
+    container_name: hpc-dashboard-app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    networks:
+      - hpc-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: hpc-dashboard-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - hpc-network
+
+networks:
+  hpc-network:
+    driver: bridge
