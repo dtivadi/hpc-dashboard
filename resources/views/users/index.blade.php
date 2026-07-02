@@ -40,8 +40,8 @@
                 <td style="padding:10px; border:1px solid #ccc;">{{ $user->name }}</td>
                 <td style="padding:10px; border:1px solid #ccc;">{{ $user->email }}</td>
                 <td style="padding:10px; border:1px solid #ccc;">
-                    <span style="padding: 2px 8px; border-radius: 12px; background: {{ $user->isAdmin() ? '#fee2e2' : '#dcfce7' }}; color: {{ $user->isAdmin() ? '#991b1b' : '#166534' }};">
-                        {{ ucfirst($user->role) }}
+                    <span style="padding: 2px 8px; border-radius: 12px; background: {{ $user->hasRole('Admin') ? '#fee2e2' : '#dcfce7' }}; color: {{ $user->hasRole('Admin') ? '#991b1b' : '#166534' }};">
+                        {{ ucfirst($user->roles->first()?->name ?? 'None') }}
                     </span>
                 </td>
                 <td style="padding:10px; border:1px solid #ccc;">{{ $user->created_at->format('Y-m-d') }}</td>

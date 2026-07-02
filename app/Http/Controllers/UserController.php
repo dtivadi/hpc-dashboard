@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Gate;
 
+use Spatie\Permission\Models\Role;
+
 class UserController extends Controller
 {
     /**
@@ -24,7 +26,8 @@ class UserController extends Controller
     public function create()
     {
         Gate::authorize('admin-only');
-        return view('users.create');
+        $roles = Role::pluck('name', 'name')->all();
+        return view('users.create', compact('roles'));
     }
 
     /**
@@ -38,15 +41,16 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string|in:user,admin',
+            'role' => 'required|string|exists:roles,name',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
         ]);
+
+        $user->assignRole($validated['role']);
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
@@ -57,7 +61,9 @@ class UserController extends Controller
     public function edit(User $user)
     {
         Gate::authorize('admin-only');
-        return view('users.edit', compact('user'));
+        $roles = Role::pluck('name', 'name')->all();
+        $userRole = $user->roles->first()?->name;
+        return view('users.edit', compact('user', 'roles', 'userRole'));
     }
 
     /**
@@ -70,7 +76,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|string|in:user,admin',
+            'role' => 'required|string|exists:roles,name',
         ]);
 
         if ($request->filled('password')) {
@@ -83,8 +89,9 @@ class UserController extends Controller
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'role' => $validated['role'],
         ]);
+
+        $user->syncRoles([$validated['role']]);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

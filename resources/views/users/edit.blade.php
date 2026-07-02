@@ -23,10 +23,11 @@
         <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px;">Role</label>
             <select name="role" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>User</option>
-                <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                @foreach($roles as $role)
+                    <option value="{{ $role }}" {{ old('role', $userRole) == $role ? 'selected' : '' }}>{{ $role }}</option>
+                @endforeach
             </select>
-            @error('role') <span style="color: #dc2626; font-size: 12px;">{{ $message }}</span> @enderror
+            @error('role') <span style="color: #dc2626; font-size: 12px; display: block;">{{ $message }}</span> @enderror
         </div>
 
         <div style="margin-bottom: 15px; border-top: 1px solid #eee; padding-top: 15px;">

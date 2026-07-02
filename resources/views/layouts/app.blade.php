@@ -28,14 +28,30 @@ text-decoration:none;}
 <div class="sidebar">
 <div class="logo" style="color:white; padding: 20px; font-weight: bold; border-bottom: 1px solid #334155;"> HPC Dashboard </div>
 <ul class="nav-links" style="list-style: none; padding: 0;">
+@can('view dashboard reports')
 <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+@endcan
+@hasanyrole('IT|Management|Admin')
 <li><a href="{{ route('resources.index') }}">Resources</a></li>
+@endhasanyrole
+@hasanyrole('IT|Admin')
 <li><a href="{{ route('services.index') }}">Services</a></li>
+@endhasanyrole
+@can('track running and queued jobs')
 <li><a href="{{ route('jobs') }}">Jobs</a></li>
+@endcan
+@can('create user accounts')
 <li><a href="{{ route('users.index') }}">Users</a></li>
+@endcan
+@hasrole('Management')
 <li><a href="{{ route('billing') }}">Billing</a></li>
+@endhasrole
+@hasanyrole('Management|Admin')
 <li><a href="{{ route('reports') }}">Reports</a></li>
+@endhasanyrole
+@hasrole('Admin')
 <li><a href="{{ route('settings') }}">Settings</a></li>
+@endhasrole
 <li style="margin-top: 20px; border-top: 1px solid #334155;">
     <form action="{{ route('logout') }}" method="POST" style="padding: 12px 25px;">
         @csrf
